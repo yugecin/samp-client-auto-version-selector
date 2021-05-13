@@ -189,7 +189,7 @@ IsServerDL()
 static
 void
 __stdcall
-DoLoad(HMODULE hMyExtraModuleHandle)
+DoLoad(HMODULE hModule)
 {
 	if (IsServerDL()) {
 		LoadLibraryA("samp-versions/0.3.DL/samp.dll");
@@ -197,7 +197,7 @@ DoLoad(HMODULE hMyExtraModuleHandle)
 		LoadLibraryA("samp-versions/0.3.7/samp.dll");
 	}
 	ResumeThreads();
-	FreeLibraryAndExitThread(hMyExtraModuleHandle, /*exit code*/ 0);
+	FreeLibraryAndExitThread(hModule, /*exit code*/ 0);
 }
 
 BOOL
@@ -207,7 +207,6 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 	DWORD currentThreadId, currentProcessId;
 	HANDLE hThread, hExistingThread;
 	HANDLE hThreadSnapshot;
-	HMODULE hMyExtraModuleHandle;
 	THREADENTRY32 threadEntry;
 
 	if (ul_reason_for_call != DLL_PROCESS_ATTACH) {
@@ -249,13 +248,10 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 			hSuspendedThreads = NULL;
 			numSuspendedThreads = 0;
 		}
-		if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR) DoLoad, &hMyExtraModuleHandle)) {
-			hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DoLoad, hMyExtraModuleHandle, 0, NULL);
-			if (hThread) {
-				CloseHandle(hThread);
-				return TRUE; // thread will do the things (and release hMyExtraModuleHandle)
-			}
-			FreeLibrary(hMyExtraModuleHandle);
+		hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DoLoad, hModule, 0, NULL);
+		if (hThread) {
+			CloseHandle(hThread);
+			return TRUE;
 		}
 		ResumeThreads();
 	}
