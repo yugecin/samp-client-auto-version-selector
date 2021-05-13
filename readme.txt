@@ -12,6 +12,11 @@ Just pick a server in your favorite launcher and connect.
 
 Use at your own risk - I am not responsible for your computer, dog or marriage.
 
+download
+========
+
+- go to 'Releases' and download the 'samp.dll' file (CTRL+F is your friend)
+
 installation
 ============
 
