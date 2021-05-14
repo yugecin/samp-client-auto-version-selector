@@ -7,8 +7,13 @@
 #include <tlhelp32.h>
 #include <string.h>
 
-#ifndef _DEBUG
-#define OutputDebugStringA
+#ifdef _DEBUG
+#define _dbg(X) OutputDebugStringA(X);
+#define _dbgf(...) do{sprintf(szDebug,__VA_ARGS__);OutputDebugStringA(szDebug);}while(0);
+char szDebug[200];
+#else
+#define _dbg(X)
+#define _dbgf(X,Y,...)
 #endif
 
 static HANDLE *hSuspendedThreads;
@@ -40,17 +45,17 @@ GetConnectingSampServerIpPort(char *buf, int *port)
 	char *pos;
 
 	cmdline = GetCommandLineA();
-	OutputDebugStringA(cmdline);
+	_dbg(cmdline);
 	// skip gta path, just in case it contains "-h " or "-p "
 	cmdline = strstr(cmdline, "gta_sa.exe");
 	if (!cmdline) {
-		OutputDebugStringA("no gta_sa.exe");
+		_dbg("no gta_sa.exe");
 		return 0;
 	}
 
 	pos = strstr(cmdline, "-h ");
 	if (!pos) {
-		OutputDebugStringA("no -h");
+		_dbg("no -h");
 		return 0;
 	}
 	pos += 3;
@@ -61,7 +66,7 @@ GetConnectingSampServerIpPort(char *buf, int *port)
 
 	pos = strstr(cmdline, "-p ");
 	if (!pos) {
-		OutputDebugStringA("no -p");
+		_dbg("no -p");
 		return 0;
 	}
 	pos += 3;
@@ -80,7 +85,6 @@ static
 int
 IsServerDL()
 {
-	char szDebug[200];
 	char ip[30], rule_name[255], rule_value[255];
 	char *ruleptr;
 	unsigned char rule_name_len, rule_value_len;
@@ -107,24 +111,23 @@ IsServerDL()
 #pragma pack(pop)
 
 	if (!GetConnectingSampServerIpPort(ip, &port)) {
-		OutputDebugStringA("Failed to find connecting samp server IP");
+		_dbg("Failed to find connecting samp server IP");
 		return 0;
 	}
-	sprintf(szDebug, "Connecting to %s:%d", ip, port);
-	OutputDebugStringA(szDebug);
+	_dbgf("Connecting to %s:%d", ip, port);
 
 	wWSAVersionRequested = MAKEWORD(2, 2);
 	if (WSAStartup(wWSAVersionRequested, &wsaData) ||
 		LOBYTE(wsaData.wVersion) != 2 ||
 		HIBYTE(wsaData.wVersion) != 2)
 	{
-		OutputDebugStringA("Failed to load WSA");
+		_dbg("Failed to load WSA");
 		return 0;
 	}
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock == INVALID_SOCKET) {
-		OutputDebugStringA("Failed to create socket");
+		_dbg("Failed to create socket");
 		WSACleanup();
 		return 0;
 	}
@@ -159,8 +162,7 @@ IsServerDL()
 		if (recvsize > 11) {
 			closesocket(sock);
 			WSACleanup();
-			sprintf(szDebug, "response from server: %d rules", query_res.num_rules);
-			OutputDebugStringA(szDebug);
+			_dbgf("response from server: %d rules", query_res.num_rules);
 			ruleptr = query_res.ruledata;
 			while (query_res.num_rules) {
 				query_res.num_rules--;
@@ -170,8 +172,7 @@ IsServerDL()
 				rule_value_len = (unsigned char) *ruleptr;
 				memcpy(rule_value, ruleptr + 1, rule_value_len);
 				ruleptr += 1 + rule_value_len;
-				sprintf(szDebug, "rule %s: %s", rule_name, rule_value);
-				OutputDebugStringA(szDebug);
+				_dbgf("rule %s: %s", rule_name, rule_value);
 				if (!strcmp("version", rule_name)) {
 					return !!strstr(rule_value, "DL");
 				}
@@ -180,7 +181,7 @@ IsServerDL()
 		}
 	}
 
-	OutputDebugStringA("server did not respond");
+	_dbg("server did not respond");
 	closesocket(sock);
 	WSACleanup();
 	return 0;
@@ -256,6 +257,6 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 		ResumeThreads();
 	}
 	// User32.dll functions aren't supposed to be used in DllMain... but oh well.
-	MessageBoxA(NULL, "Failed", "samp-client-auto-version-selector", MB_OK | MB_ICONERROR);
+	MessageBoxA(NULL, "initialization failed", "samp-client-auto-version-selector", MB_OK | MB_ICONERROR);
 	return TRUE;
 }
