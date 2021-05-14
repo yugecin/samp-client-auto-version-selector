@@ -244,11 +244,11 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 					}
 				}
 			} while (Thread32Next(hThreadSnapshot, &threadEntry));
-			CloseHandle(hThreadSnapshot);
 		} else {
 			hSuspendedThreads = NULL;
 			numSuspendedThreads = 0;
 		}
+		CloseHandle(hThreadSnapshot);
 		hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DoLoad, hModule, 0, NULL);
 		if (hThread) {
 			CloseHandle(hThread);
