@@ -20,16 +20,16 @@ download
 installation
 ============
 
-- install client 0.3.7 (https://www.sa-mp.com/download.php)
-- copy <gamedir>/samp.dll into <gamedir>/samp-versions/0.3.7/samp.dlll
 - install client 0.3.DL (No official download link available)
 - copy <gamedir>/samp.dll into <gamedir>/samp-versions/0.3.DL/samp.dll
+- install client 0.3.7 (https://www.sa-mp.com/download.php)
+- copy <gamedir>/samp.dll into <gamedir>/samp-versions/0.3.7/samp.dlll
 - replace <gamedir>/samp.dll with the samp.dll from this project
 
 Then open the serverbrowser (or any samp launcher of your choice), and just
 connect to a server.
 
-(If you want the server browser for 0.3.7, just install 0.3.7 again,
+(If you want the server browser for 0.3.DL, just install 0.3.DL again,
 or change the order of the steps above)
 
 how does it work
